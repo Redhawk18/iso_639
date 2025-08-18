@@ -1,0 +1,40 @@
+[package]
+name = "iso_639"
+description = "iso 639 formats"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[package.metadata.docs.rs] 
+all-features = true
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+readme = "README.md"
+authors = [ "Redhawk18" ]
+
+[features]
+default = ["part_1"]
+part_1 = []
+part_2 = []
+part_3 = []
+# There is no part 4, I know right crazy!
+part_5 = []
+full = ["part_1", "part_2", "part_3", "part_5",]
+
+[workspace]
+members = ["macros"]
+iso_639_macros = { path = "macros" }
+
+[dependencies]
+iso_639_macros = { path = "macros" }
+
+[workspace.dependencies]
+csv = "1.3.1"
+proc-macro2 = "1"
+quote = "1"
+serde = { version = "1", features = ["derive"] }
+syn = "2"
+
