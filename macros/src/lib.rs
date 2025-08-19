@@ -4,12 +4,12 @@
 // impl display, seralization, to string, maybe from string
 //
 
-use std::path::Path;
-
 use csv::ReaderBuilder;
 use proc_macro::TokenStream;
+use proc_macro2::{Ident, Span};
 use quote::quote;
 use serde::Deserialize;
+use std::path::Path;
 use syn::{
     LitStr,
     parse::{Parse, ParseStream},
@@ -43,35 +43,60 @@ pub fn language(input: TokenStream) -> TokenStream {
         .from_path(path)
         .expect("Failed to open the file.");
 
-    #[derive(Deserialize)]
+    #[derive(Debug, Deserialize)]
     struct Language {
+        #[serde(rename = "URI")]
         uri: String,
         code: String,
+        #[serde(rename = "Label (English)")]
         english_name: String,
+        #[serde(rename = "Label (French)")]
         _french_name: String,
     }
 
-    let items: Vec<Language> = rdr.deserialize().map(|result| result.unwrap()).collect();
+    let items: Vec<Language> = rdr
+        .deserialize()
+        .map(|result| {
+            // dbg!("{}", &result);
+            result.unwrap()
+        })
+        .collect();
     let mut variants = proc_macro2::TokenStream::new();
     for item in items {
         let doc = format!(
-            "The {} Language with the code of `{}`. [More infomation can be found on the Library of Congress website]({})",
-            item.english_name, item.code, item.uri
+            " The {} language with the code of `{}`. [More infomation can be found on the Library of Congress website]({})",
+            item.english_name.replace("|", "or"),
+            item.code,
+            item.uri
         );
 
         let code = item.code;
-        let english_name = item.english_name;
+        let english_name = item
+            .english_name
+            .replace("ca.", "")
+            .replace("'", "")
+            .replace("(", "")
+            .replace(")", "")
+            .replace(",", "")
+            .replace(".", "")
+            .replace(" ", "") // TODO capitial each word with space.
+            .replace("-", "_")
+            // Non-standard `-`
+            .replace("‑based", "Based")
+            .replace("|", "Or");
+        dbg!("{}", &english_name);
 
+        let ident = Ident::new(&english_name, Span::call_site());
         variants.extend(quote! {
             #[doc = #doc]
-            // #[cfg_attr(feature = serde, rename = #code)]
-            #english_name,
+            #[serde(rename = #code)]
+            #ident,
         });
     }
 
     quote! {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-        enum Language {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+        pub enum Language {
             #variants
         }
     }

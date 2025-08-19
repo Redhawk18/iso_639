@@ -26,7 +26,10 @@
 
             languages.rust.enable = true;
             languages.rust.channel = "nixpkgs";
-            packages = with pkgs; [ curl ];
+            packages = with pkgs; [
+              cargo-expand
+              curl
+            ];
 
             env = {
               RUST_LOG = "info";

@@ -25,14 +25,15 @@ dependencies = [
 
 [[package]]
 name = "iso_639"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "iso_639_macros",
+ "serde",
 ]
 
 [[package]]
 name = "iso_639_macros"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "csv",
  "proc-macro2",
