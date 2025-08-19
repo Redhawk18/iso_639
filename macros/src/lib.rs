@@ -36,7 +36,7 @@ pub fn language(input: TokenStream) -> TokenStream {
     let path = path.value();
     let path = Path::new(&path);
 
-    println!("{:?}", &path);
+    // println!("path {:?}", &path);
     let mut rdr = ReaderBuilder::new()
         .delimiter(b'\t')
         .has_headers(true)
@@ -62,6 +62,7 @@ pub fn language(input: TokenStream) -> TokenStream {
         })
         .collect();
     let mut variants = proc_macro2::TokenStream::new();
+    let mut write = proc_macro2::TokenStream::new();
     for item in items {
         let doc = format!(
             " The {} language with the code of `{}`. [More infomation can be found on the Library of Congress website]({})",
@@ -84,7 +85,7 @@ pub fn language(input: TokenStream) -> TokenStream {
             // Non-standard `-`
             .replace("‑based", "Based")
             .replace("|", "Or");
-        dbg!("{}", &english_name);
+        // dbg!("{}", &english_name);
 
         let ident = Ident::new(&english_name, Span::call_site());
         variants.extend(quote! {
@@ -92,19 +93,26 @@ pub fn language(input: TokenStream) -> TokenStream {
             #[serde(rename = #code)]
             #ident,
         });
+
+        write.extend(quote! {
+            Language::#ident => #code,
+        });
     }
 
     quote! {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
         pub enum Language {
             #variants
         }
+
+        impl std::fmt::Display for Language {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}", match self {
+                    #write
+                })
+            }
+        }
+
     }
     .into()
 }
-
-//         impl std::fmt::Display for Input {
-//             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//                 write!(f, "{}", "")
-//             }
-//         }
