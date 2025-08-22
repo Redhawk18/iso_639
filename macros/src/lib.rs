@@ -33,10 +33,16 @@ impl Parse for Input {
 #[proc_macro]
 pub fn language(input: TokenStream) -> TokenStream {
     let Input { path } = parse_macro_input!(input as Input);
-    let path = path.value();
-    let path = Path::new(&path);
+    // let path = path.span().local;
+    let path = path
+        .span()
+        .local_file()
+        .expect("Failed to find file.")
+        .parent()
+        .expect("Failed to get parent.")
+        .join(path.value());
 
-    // println!("path {:?}", &path);
+    println!("path {:?}", &path);
     let mut rdr = ReaderBuilder::new()
         .delimiter(b'\t')
         .has_headers(true)

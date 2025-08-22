@@ -1,3 +1,6 @@
+use std::path::Path;
+
 use iso_639_macros::language;
 
-language!("/home/redhawk/code/iso_639/assets/iso-639-1.tsv");
+// let path = Path::new("../assets/iso-639-1.tsv").to_str();
+language!("../assets/iso-639-1.tsv");
